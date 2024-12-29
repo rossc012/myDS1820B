@@ -2,7 +2,7 @@
 
 // Constructor to initialize with GPIO pin
 DS18B20Manager::DS18B20Manager(uint8_t busPin) 
-    : oneWire(busPin), sensors(&oneWire), lastPollTime(0), pollInterval(0), resolution(9) {}
+    : oneWire(busPin), sensors(&oneWire), lastPollTime(0), pollInterval(1000), resolution(9) {}
 
 // Begin the library, initialize sensors and EEPROM
 void DS18B20Manager::begin() {

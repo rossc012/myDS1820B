@@ -1,48 +1,79 @@
-#ifndef DS18B20MANAGER_H
-#define DS18B20MANAGER_H
+#ifndef DS18B20Manager_h
+#define DS18B20Manager_h
 
-#include <Arduino.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <EEPROM.h>
 
+// Define the starting EEPROM address for sensor data storage
+#define SENSOR_DATA_START_ADDRESS 0
+
 class DS18B20Manager {
 public:
-    DS18B20Manager(uint8_t busPin);  // Constructor to initialize with GPIO pin
+    // Constructor to initialize with GPIO pin
+    DS18B20Manager(uint8_t busPin);
 
-    void begin();  // Begin the library, initialize sensors and EEPROM
-    void discoverSensors();  // Discover all connected sensors
-    void loop();  // Main loop to poll sensors and manage timing
-    float getSensorValue(const String& sensorID);  // Retrieve sensor temperature value
-    String getSensorName(const String& sensorID);  // Get sensor's name from EEPROM
+    // Begin the library, initialize sensors, and EEPROM
+    void begin();
 
-    void pollSensors();  // Function to request temperature conversions
-    void storeSensorData();  // Function to store sensor data (can be used for transmitting or processing)
+    // Main loop to poll sensors and manage timing
+    void loop();
 
-    // New public methods:
-    void setResolution();  // Set sensor resolution to 9-bit (fastest)
-    void listAllSensors();  // List all connected and stored sensors
-    void deleteUnconnectedSensors();  // Delete sensors from EEPROM that are no longer connected
+    // Discover and name sensors if not already named
+    void discoverSensors();
+
+    // Set the DS18B20 resolution (9-bit for fastest, lowest resolution)
+    void setResolution();
+
+    // List all connected sensors and those stored in EEPROM
+    void listAllSensors();
+
+    // Delete sensors from EEPROM that are no longer connected
+    void deleteUnconnectedSensors();
+
+    // Store sensor data (to transmit or process)
+    void storeSensorData();
+
+    // Poll all sensors (non-blocking)
+    void pollSensors();
+
+    // Get sensor name from EEPROM
+    String getSensorName(const String& sensorID);
+
+    // Check if a sensor is named (exists in EEPROM)
+    bool isSensorNamed(const String& sensorID);
+
+    // Prompt the user for a sensor name via Serial
+    String promptForSensorName(const String& sensorID);
+
+    // Store the sensor name in EEPROM
+    void storeSensorName(const String& sensorID, const String& name);
 
 private:
-    OneWire oneWire;  // OneWire instance to interface with DS18B20
-    DallasTemperature sensors;  // DallasTemperature instance for DS18B20 management
-    unsigned long lastPollTime;  // Timestamp for non-blocking sensor polling
-    uint32_t pollInterval;  // Interval time between sensor polling (in ms)
-    uint8_t resolution;  // Sensor resolution (9-bit for fastest)
+    OneWire oneWire;  // OneWire instance for sensor communication
+    DallasTemperature sensors;  // DallasTemperature instance
+    unsigned long lastPollTime;  // Track last poll time for non-blocking loop
+    unsigned long pollInterval;  // Time between polls
+    int resolution;  // Sensor resolution
+    static const int EEPROM_SIZE = 512;  // EEPROM size
 
-    const int SENSOR_DATA_START_ADDRESS = 128;  // EEPROM address where sensor data starts
+    // Helper function to convert sensor address to string ID
+    String getSensorID(const DeviceAddress& sensorAddress);
 
-    // Helper functions
-    String getSensorID(const DeviceAddress& sensorAddress);  // Convert sensor address to string ID
-    bool isSensorNamed(const String& sensorID);  // Check if a sensor has been named in EEPROM
-    String promptForSensorName(const String& sensorID);  // Prompt the user for sensor name
-    void storeSensorName(const String& sensorID, const String& name);  // Store sensor name in EEPROM
-    int getEEPROMAddress(const String& sensorID);  // Get EEPROM address for a sensor
-    bool getSensorAddress(const String& sensorID, DeviceAddress& address);  // Get the sensor's address from its ID
-    bool isSensorConnected(const String& sensorID);  // Check if the sensor is currently connected
+    // Helper function to get EEPROM address for a sensor ID
+    int getEEPROMAddress(const String& sensorID);
 
-    String getSensorIDFromEEPROM(int index);  // Retrieve sensor ID from EEPROM
+    // Helper function to check if the sensor is currently connected
+    bool isSensorConnected(const String& sensorID);
+
+    // Helper function to get sensor's address from its ID
+    bool getSensorAddress(const String& sensorID, DeviceAddress& address);
+
+    // Helper function to list sensors in EEPROM
+    String getSensorIDFromEEPROM(int index);
+
+    // Helper function to delete a sensor from EEPROM
+    void deleteSensorFromEEPROM(const String& sensorID);
 };
 
-#endif // DS18B20MANAGER_H
+#endif
