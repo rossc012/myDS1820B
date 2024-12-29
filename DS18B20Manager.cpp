@@ -18,7 +18,7 @@ void DS18B20Manager::setResolution() {
     for (int i = 0; i < sensors.getDeviceCount(); i++) {
         DeviceAddress sensorAddress;
         if (sensors.getAddress(sensorAddress, i)) {
-            sensors.setResolution(sensorAddress, resolution);
+            sensors.setResolution(sensorAddress, resolution);  // Use sensors object correctly
         }
     }
 }
@@ -101,4 +101,54 @@ void DS18B20Manager::storeSensorData() {
             Serial.printf("Sensor %s (%s) = %.2f°C\n", sensorName.c_str(), sensorID.c_str(), temperature);
         }
     }
+}
+
+// Getter for sensor ID from DeviceAddress
+String DS18B20Manager::getSensorID(const DeviceAddress& sensorAddress) {
+    String sensorID = "";
+    for (uint8_t i = 0; i < 8; i++) {
+        sensorID += String(sensorAddress[i], HEX);
+    }
+    return sensorID;
+}
+
+// Getter for sensor name, defined by the user or the EEPROM
+String DS18B20Manager::getSensorName(const String& sensorID) {
+    return "Sensor " + sensorID;  // Placeholder for actual name retrieval
+}
+
+bool DS18B20Manager::isSensorNamed(const String& sensorID) {
+    // Placeholder: implement your logic for checking if the sensor is named
+    return false;
+}
+
+String DS18B20Manager::promptForSensorName(const String& sensorID) {
+    return "Sensor_" + sensorID;  // Placeholder for actual name assignment logic
+}
+
+void DS18B20Manager::storeSensorName(const String& sensorID, const String& name) {
+    EEPROM.write(getEEPROMAddress(sensorID), name.length());
+    for (size_t i = 0; i < name.length(); i++) {
+        EEPROM.write(getEEPROMAddress(sensorID) + i + 1, name[i]);
+    }
+    EEPROM.commit();
+}
+
+int DS18B20Manager::getEEPROMAddress(const String& sensorID) {
+    return SENSOR_DATA_START_ADDRESS + sensorID.hashCode() % EEPROM_SIZE;
+}
+
+bool DS18B20Manager::getSensorAddress(const String& sensorID, DeviceAddress& address) {
+    for (int i = 0; i < sensors.getDeviceCount(); i++) {
+        if (sensors.getAddress(address, i)) {
+            if (getSensorID(address) == sensorID) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+DallasTemperature& DS18B20Manager::getSensors() {
+    return sensors;
 }

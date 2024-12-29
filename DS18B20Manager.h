@@ -37,10 +37,8 @@ public:
     int getEEPROMAddress(const String& sensorID);
     bool getSensorAddress(const String& sensorID, DeviceAddress& address);
 
-    // Getter for sensors object (to avoid private member access error)
-    DallasTemperature& getSensors() {
-        return sensors;
-    }
+    DallasTemperature& getSensors();  // Added getter to access DallasTemperature object
+
 };
 
 #endif
